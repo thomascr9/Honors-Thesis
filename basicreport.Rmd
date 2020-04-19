@@ -1,7 +1,7 @@
 ---
 title: "Mock Practice Report"
 author: "Caroline Thomas"
-date: "4/13/2020"
+date: "4/18/2020"
 output: html_document
 ---
 
@@ -16,7 +16,7 @@ library(formattable)
 ```
 
 ```{r, echo=FALSE}
-data <- read.csv("practicedata.csv") %>%
+data <- read.csv("practicedata1.csv") %>%
   mutate(.,
          player = X..i..,
          strikes = X..i...1,
@@ -25,10 +25,10 @@ data <- read.csv("practicedata.csv") %>%
          up_down = X..i...4,
          change1 = X..i...5,
          win_loss = X..i...6,
-         change2 = X..i...7,
-         xloc = X..i...8,
-         yloc = X..i...9) %>%
-  select(., player, strikes, balls, in_out, up_down, change1, win_loss, change2, xloc, yloc)
+         change2 = X..i...14,
+         xloc = X..i...15,
+         yloc = X..i...16) %>%
+  select(., player, balls, strikes, in_out, up_down, change1, win_loss, change2, xloc, yloc)
 ```
 
 ## Team Summary
@@ -179,7 +179,7 @@ color_tile_mean <- function (...) {
           `background-color` = ifelse(x < 50 , "lightcoral", ifelse(x > 60, "lightgreen", "khaki"))) # Remember to change the colors!
   })}
 
-formattable(win_loss_sit_play[1,], align = "l", list(`Percentage` = color_tile_mean() ))
+formattable(win_loss_sit_play[1:2,], align = "l", list(`Percentage` = color_tile_mean() ))
 ```
 
 
@@ -208,7 +208,7 @@ color_tile_mean <- function (...) {
           `background-color` = ifelse(x < 50 , "lightcoral", ifelse(x > 60, "lightgreen", "khaki"))) # Remember to change the colors!
   })}
 
-formattable(win_loss_sit_play[2:3,], align = "l", list(`Percentage` = color_tile_mean() ))
+formattable(win_loss_sit_play[3:4,], align = "l", list(`Percentage` = color_tile_mean() ))
 ```
 
 ```{r, echo=FALSE}
