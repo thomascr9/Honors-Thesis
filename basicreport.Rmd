@@ -1,0 +1,226 @@
+---
+title: "Mock Practice Report"
+author: "Caroline Thomas"
+date: "4/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE, warning=FALSE,message=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(formattable)
+```
+
+```{r, echo=FALSE}
+data <- read.csv("practicedata.csv") %>%
+  mutate(.,
+         player = X..i..,
+         strikes = X..i...1,
+         balls = X..i...2,
+         in_out = X..i...3,
+         up_down = X..i...4,
+         change1 = X..i...5,
+         win_loss = X..i...6,
+         change2 = X..i...14,
+         xloc = X..i...15,
+         yloc = X..i...16) %>%
+  select(., player, balls, strikes, in_out, up_down, change1, win_loss, change2, xloc, yloc)
+```
+
+## Team Summary
+
+### Pitches seen:
+```{r, echo=FALSE}
+pitches_team <- count(data)
+```
+**During this practice, the team saw `r pitches_team$n` pitches.**
+
+### Team Win and Loss Percentages:
+```{r, echo=FALSE}
+#win/loss perc
+win_loss_perc <- data %>%
+  group_by(win_loss) %>%
+  count() %>%
+  mutate(., percentage = n/pitches_team$n *100)
+
+formattable(win_loss_perc, align = "l", list(area(col = 3) ~ function(x) percent(x/100, digits = 1)))
+
+pie(win_loss_perc$percentage, labels = round(win_loss_perc$percentage,2), col = c("lightcoral", "lightgreen"),
+    main = "Percentage of Wins and Losses for Team")
+legend("bottomright", legend = win_loss_perc$win_loss , fill = c("lightcoral", "lightgreen"))
+```
+
+### Team Situational Report
+
+#### Number of pitches seen in each situation:
+```{r, echo=FALSE}
+pitches_sit <- data %>%
+  group_by(strikes, balls) %>%
+  count()
+
+formattable(pitches_sit, align = "l")
+```
+
+#### Win percentage for each count:
+```{r, echo=FALSE, message=FALSE}
+win_loss_sit <- data %>%
+  group_by(strikes, balls, win_loss)%>%
+  count() %>%
+  mutate(
+    pitches = n
+  ) %>%
+  select(., -n)
+
+win_loss_sit <- left_join(win_loss_sit, pitches_sit) %>%
+  mutate(., pitches_seen = n) %>%
+  select(., -n) %>%
+  mutate(., Percentage = round(pitches/pitches_seen*100,2)) %>%
+  filter(., win_loss == "Win")
+
+```
+
+```{r, echo=FALSE}
+color_tile_mean <- function (...) {
+  formatter("span", style = function(x) {
+    style(display = "block",
+          padding = "0 4px", 
+          `border-radius` = "4px", 
+          `background-color` = ifelse(x < 50 , "lightcoral", ifelse(x > 60, "lightgreen", "khaki"))) # Remember to change the colors!
+  })}
+
+formattable(win_loss_sit, align = "l", list(`Percentage` = color_tile_mean()))
+```
+
+
+## Player Summaries
+
+```{r, echo=FALSE}
+pitches_player <- data %>%
+  group_by(player) %>%
+  count()
+```
+
+### Win percentage for each player:
+```{r, echo=FALSE, message=FALSE}
+win_loss_player <- data %>%
+  group_by(player, win_loss)%>%
+  count() %>%
+  mutate(
+    pitches = n
+  ) %>%
+  select(., -n)
+
+win_loss_player <- left_join(win_loss_player, pitches_player) %>%
+  mutate(., pitches_seen = n) %>%
+  select(., -n) %>%
+  mutate(., Percentage = round(pitches/pitches_seen*100,2))
+
+```
+
+```{r, echo=FALSE}
+
+pitch_counts <- win_loss_player %>%
+  mutate(Player = paste0(player,"\n", "# of Pitches Seen: ",pitches_seen))
+
+#formattable(pitches_player, align = "l")
+
+#bar chart win/loss percentage
+
+ggplot(pitch_counts, aes(fill = win_loss, y = Percentage, x = Player)) +
+  geom_bar(position = "fill", stat = "identity") +
+  scale_fill_manual(values = c("lightcoral","lightgreen"), "Win/Loss") +
+  ggtitle("Proportion of Wins/Loss for Each Player") +
+  theme_classic() +
+  xlab("Player") +
+  ylab("Proportion of Wins and Losses") 
+
+```
+
+
+### Player Situational Reports
+**Charts display the strikezone, the player's most frequent "hot zone", pitches that were seen, and whether pitches were a win or loss.**
+
+```{r, echo=FALSE}
+pitches_sit_play <- data %>%
+  group_by(player, balls, strikes) %>%
+  count()
+```
+
+```{r, echo=FALSE, message=FALSE}
+win_loss_sit_play <- data %>%
+  group_by(player, balls, strikes, win_loss)%>%
+  count() %>%
+  mutate(
+    pitches = n
+  ) %>%
+  select(., -n)
+
+win_loss_sit_play <- left_join(win_loss_sit_play, pitches_sit_play) %>%
+  mutate(., pitches_seen = n) %>%
+  select(., -n) %>%
+  mutate(., Percentage = round(pitches/pitches_seen*100,2)) %>%
+  filter(., win_loss == "Win")
+
+```
+
+
+### Jordan Acosta, #23:
+
+```{r, echo=FALSE}
+color_tile_mean <- function (...) {
+  formatter("span", style = function(x) {
+    style(display = "block",
+          padding = "0 4px", 
+          `border-radius` = "4px", 
+          `background-color` = ifelse(x < 50 , "lightcoral", ifelse(x > 60, "lightgreen", "khaki"))) # Remember to change the colors!
+  })}
+
+formattable(win_loss_sit_play[1:2,], align = "l", list(`Percentage` = color_tile_mean() ))
+```
+
+
+```{r, echo=FALSE}
+#For Jordan Acosta
+data1 <- data %>%
+  filter(player == "Acosta, Jordan #23")
+
+plot(1, type = "l", main = "Jordan Acosta", xlab = "", ylab = "", xlim = c(0,5), ylim = c(0,5), yaxt = 'n', xaxt = 'n', pch = 16)
+polygon(x = c(1,4,4,1), y = c(1,1,4,4), col = adjustcolor("lightcoral",alpha.f=0.5))
+polygon(x = c(1,3,3,1), y = c(2,2,4,4), col = adjustcolor("lightgreen", alpha.f = 0.5))
+points(x = data1$xloc, y = data1$yloc, pch = 16, col = data1$win_loss)
+legend("bottomright", legend = c("Win", "Loss"), col = c("red", "black"), pch = 16, box.lty = 0)
+legend("bottom", legend = c("Strikezone", "Hot Zone"), col = c("lightcoral", "lightgreen"), pch = 15, box.lty = 0)
+grid(nx = 5, ny = 5, col = "black")
+```
+
+### Peyton Allen, #3
+
+```{r, echo=FALSE}
+color_tile_mean <- function (...) {
+  formatter("span", style = function(x) {
+    style(display = "block",
+          padding = "0 4px", 
+          `border-radius` = "4px", 
+          `background-color` = ifelse(x < 50 , "lightcoral", ifelse(x > 60, "lightgreen", "khaki"))) # Remember to change the colors!
+  })}
+
+formattable(win_loss_sit_play[3:4,], align = "l", list(`Percentage` = color_tile_mean() ))
+```
+
+```{r, echo=FALSE}
+#For Peyton Allen
+data2 <- data %>%
+  filter(player == "Allen, Peyton #3")
+
+plot(1, type = "l", main = "Peyton Allen", xlab = "", ylab = "", xlim = c(0,5), ylim = c(0,5), yaxt = 'n', xaxt = 'n', pch = 16)
+polygon(x = c(1,4,4,1), y = c(1,1,4,4), col = adjustcolor("lightcoral",alpha.f=0.5))
+polygon(x = c(2,4,4,2), y = c(2,2,4,4), col = adjustcolor("lightgreen", alpha.f = 0.5))
+points(x = data2$xloc, y = data2$yloc, pch = 16, col = data2$win_loss)
+legend("bottomright", legend = c("Win", "Loss"), col = c("red", "black"), pch = 16, box.lty = 0)
+legend("bottom", legend = c("Strikezone", "Hot Zone"), col = c("lightcoral", "lightgreen"), pch = 15, box.lty = 0)
+grid(nx = 5, ny = 5, col = "black")
+```
