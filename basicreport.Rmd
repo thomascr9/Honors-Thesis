@@ -1,7 +1,7 @@
 ---
 title: "Mock Practice Report"
 author: "Caroline Thomas"
-date: "4/18/2020"
+date: "4/28/2020"
 output: html_document
 ---
 
@@ -16,7 +16,7 @@ library(formattable)
 ```
 
 ```{r, echo=FALSE}
-data <- read.csv("practicedata1.csv") %>%
+data <- read.csv("practicedata.csv") %>%
   mutate(.,
          player = X..i..,
          strikes = X..i...1,
@@ -146,13 +146,13 @@ ggplot(pitch_counts, aes(fill = win_loss, y = Percentage, x = Player)) +
 
 ```{r, echo=FALSE}
 pitches_sit_play <- data %>%
-  group_by(player, strikes, balls) %>%
+  group_by(player, balls, strikes) %>%
   count()
 ```
 
 ```{r, echo=FALSE, message=FALSE}
 win_loss_sit_play <- data %>%
-  group_by(player, strikes, balls, win_loss)%>%
+  group_by(player, balls, strikes, win_loss)%>%
   count() %>%
   mutate(
     pitches = n
